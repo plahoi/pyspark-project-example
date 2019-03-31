@@ -1,3 +1,6 @@
+''' Utils 
+'''
+
 def test_persist_data(data):
     data.limit(2).write.csv('jobs/test_apolyakov/mycsv.csv')
 
@@ -39,3 +42,21 @@ def generate_spark_tables(src, spark):
     '''
     return {src_table_key: spark.table(src_table_name)
            for src_table_key, src_table_name in src.items()}
+
+def week_day(date):
+    ''' Returns the number of week of given string/date/datetime
+    monday = 1
+
+    Arguments:
+        date (string/date/datetime): 
+    
+    Retruns:
+        day of week (int)
+    '''
+    import datetime
+    if isinstance(date, str):
+        date = date[:10]
+        date = datetime.datetime.strptime(date, '%Y-%m-%d')
+    if not isinstance(date, datetime.datetime) and not isinstance(date, datetime.date):
+        return None
+    return date.weekday() + 1
