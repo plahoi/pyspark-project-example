@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# zip dependencies
+if [ ! -d dependencies ]
+then 
+    echo 'ERROR - pip failed to import dependencies'
+    exit 1
+fi
+
+# add local modules
+echo '... adding all modules from local utils package'
+zip -ru9 packages.zip dependencies -x dependencies/__pycache__/\*
+
+exit 0
