@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-''' Связка мастер-атрибутов пассажира Московского ОТ или автомобилиста Москвы:
-    Хэш идентификатора чипа билета Метро + Тип билета НГПТ + Номер билета НГПТ
+''' XXXX
 '''
 import datetime
 import argparse
@@ -51,7 +50,7 @@ class Job():
 
 
     def rename_psg_columns(self, psg):
-        psg = psg.withColumnRenamed('crd_serial_no_hash', 'hash_ticket_uid') \
+        psg = psg.withColumnRenamed('crd_serial', 'ticket_uid') \
             .withColumnRenamed('crd_no', 'ticket_num') \
             .withColumnRenamed('gd_id', 'ticket_type_id')
         return psg
@@ -59,21 +58,7 @@ class Job():
 
     def join_data(self, Data):
         '''
-        Соединение таблиц для реализации пунктов 4.2.4, 4.2.5, 4.2.6, 4.2.7, 4.2.9
-        (приведено описание без учета переименования колонок в rename_psg_columns())
-
-        metro_data.gds_goods.gd_id = metro_data.psg_pass_ppr_hash_v_all.gd_id
-
-        dict.d_ticket_type_map.subway_ticket_type_id = metro_data.psg_pass_ppr_hash_v_all.gd_id
-
-        mosgortr_data.pass_mgt.ticket_code = ticket_num из metro_data.psg_pass_ppr_hash_v_all
-            и mosgortr_data.pass_mgt.ticket_type = public_ticket_type_nm из dict.d_ticket_type_map
-
-        mosgortr_data.pass_mgt.ticket_code = ticket_num из metro_data.psg_pass_ppr_hash_v_all
-            и mosgortr_data.pass_mgt.ticket_type = public_ticket_type_nm из dict.d_ticket_type_map
-
-        mosgortr_data.pass_mgt.ticket_code = ticket_num из metro_data.psg_pass_ppr_hash_v_all
-            и mosgortr_data.pass_mgt.ticket_type = public_ticket_type_nm из dict.d_ticket_type_map
+        XXXX
         '''
         data = Data.psg.join(
             Data.gds,
@@ -94,20 +79,7 @@ class Job():
 
     def aggregate_and_collect_data(self, data):
         '''
-        4.2.1. Атрибут HASH_TICKET_UID заполняем значением из METRO_DATA.PSG_PASS_PPR_HASH_V_ALL.CRD_SERIAL_NO_HASH
-        4.2.2. Атрибут TICKET_NUM заполняем значением из METRO_DATA.PSG_PASS_PPR_HASH_V_ALL.CRD_NO
-        4.2.3. Атрибут TICKET_TYPE_ID заполняем значением из METRO_DATA.PSG_PASS_PPR_HASH_V_ALL.GD_ID
-        4.2.4. Атрибут SUBWAY_TICKET_TYPE_NM заполняем значением из METRO_DATA.GDS_GOODS.NAME
-        4.2.5. Атрибут PUBLIC_TICKET_TYPE_NM заполняем из DICT.D_TICKET_TYPE_MAP.PUBLIC_TICKET_TYPE_NM
-        4.2.6. Атрибут MIN_DT заполняем минимальным значением даты без времени из
-            METRO_DATA.PSG_PASS_PPR_HASH_V_ALL.PSG_DATE, MOSGORTR_DATA.PASS_MGT.PASS_DATETIME
-        4.2.7. Атрибут MAX_DT заполняем максимальным значением даты без времени из
-            METRO_DATA.PSG_PASS_PPR_HASH_V_ALL.PSG_DATE, MOSGORTR_DATA.PASS_MGT.PASS_DATETIME
-        4.2.8. Атрибут EXPIRE_DT заполняем значением null
-        4.2.9. Атрибут RELATION_CNT заполняем количеством уникальных записей по
-            METRO_DATA.PSG_PASS_PPR_HASH_V_ALL.PSG_DATE, MOSGORTR_DATA.PASS_MGT.PASS_DATETIME
-        4.2.10. Атрибут PROBABILITY заполняем значением 1
-        4.2.11. Атрибут SOURCE заполняем значением 'METRO_AND_MOSGORTR'
+        XXXX
         '''
         window = Window.partitionBy(
             data.hash_ticket_uid, data.ticket_num, data.ticket_type_id)
@@ -132,7 +104,7 @@ class Job():
                 F.size(F.collect_set(data.pass_datetime).over(window))).alias('relation_cnt'),
 
             F.lit(1).alias('probability'),
-            F.lit('METRO_AND_MOSGORTR').alias('source'),
+            F.lit('TEST').alias('source'),
 
             F.lit(self.date_from).alias('period_from_dt'),
             F.lit(self.date_to).alias('period_to_dt'),
@@ -183,13 +155,13 @@ class Job():
         self.log.warn('calc_30_tickets is up-and-running')
 
         src = {
-            'psg_pass_ppr': 'metro_data.psg_pass_ppr_hash_v_all',
-            'gds_goods': 'metro_data.gds_goods',
-            'pass_mgt': 'mosgortr_data.pass_mgt',
-            'ticket_type': 'dict.d_ticket_type_map'
+            'psg_pass_ppr': 'psg_pass_ppr_hash_v_all',
+            'gds_goods': 'gds_goods',
+            'pass_mgt': 'pass_mgt',
+            'ticket_type': 'd_ticket_type_map'
         }
 
-        dst = 'sandbox_dev.case_profile_calc_d_subway_ticket_x_public_ticket'
+        dst = 'dst_table'
 
         parser = argparse.ArgumentParser()
         parser.add_argument(
@@ -211,7 +183,7 @@ class Job():
         self.calc(src, dst, **args)
 
         # log the success and terminate Spark application
-        self.log.warn('calc_30_tickets is finished')
+        self.log.warn('calc_30 is finished')
         self.spark.stop()
         return None
 
